@@ -24,8 +24,24 @@ from utils import load_personas, select_agents
 import os
 from datetime import datetime
 
+draft = False
+
+release_number = "0.1"
+release_day = "24th September"
+release_year = "2025"
+release_date = " ".join([release_day, release_year])
+
+if draft: release_number = "(Under Development After) " + release_number
+
+header = """
+🧠 Welcome to APOD: Agent Panel On Demand
+Release %s dated %s
+https://github.com/mauriceling/apod
+""" % (str(release_number),  release_date)
+
+
 def main():
-    print("🧠 Welcome to APOD: Agent Panel On Demand")
+    print(header)
 
     # Create chatlogs directory if it doesn't exist
     chatlogs_dir = os.path.join(os.path.dirname(__file__), "chatlogs")
