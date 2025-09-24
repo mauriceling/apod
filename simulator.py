@@ -57,49 +57,52 @@ def generate_response(agent_name, prompt):
         print(f"Prompt length: {len(prompt)} characters")
         raise
 
-def run_simulation(topic, agent_names, turns, moderator_after, personas):
+def run_simulation(topic, agent_names, turns, moderator_after, personas, log_file=None):
     try:
         setup_openrouter()
         print(f"\n🎯 Starting discussion on: {topic}")
         print(f"Participants: {', '.join(agent_names)}")
         
-        log = start_log(topic, agent_names, moderator_after)
-
+        log = start_log(topic, agent_names, moderator_after, log_file)
         previous_message = topic
-        for i in range(turns):
-            current_agent = agent_names[i % len(agent_names)]
-            persona = personas[current_agent]
-            prompt = f"{persona}\n\nRespond to this idea:\n\"{previous_message}\""
+        continue_discussion = True
 
-            reply = generate_response(current_agent, prompt)
-            log_turn(log, current_agent, reply, "")
+        while continue_discussion:
+            for i in range(turns):
+                current_agent = agent_names[i % len(agent_names)]
+                persona = personas[current_agent]
+                prompt = f"{persona}\n\nRespond to this idea:\n\"{previous_message}\""
 
-            previous_message = reply
+                reply = generate_response(current_agent, prompt)
+                log_turn(log, current_agent, reply, "")
 
-            # Moderator injection
-            if moderator_after and i + 1 == moderator_after:
-                moderator_input = input("\n🧑 Moderator: Enter your reflection or guidance:\n").strip()
-                log_turn(log, "Moderator", moderator_input, "moderator")
-                previous_message = moderator_input
+                previous_message = reply
 
-            # After each turn, ask if user wants to continue
-            if i < turns - 1:  # Don't ask on the last turn
-                continue_chat = input("\nContinue the discussion? (y/n): ").lower().strip()
-                if continue_chat != 'y':
-                    print("\n💫 Ending discussion early...")
-                    break
+                # Moderator injection
+                if moderator_after and i + 1 == moderator_after:
+                    moderator_input = input("\n🧑 Moderator: Enter your reflection or guidance:\n").strip()
+                    log_turn(log, "Moderator", moderator_input, "moderator")
+                    previous_message = moderator_input
 
-        log_summary(log, topic, agent_names)
-        
-        # Ask if user wants to continue discussion
-        continue_discussion = input("\nContinue this discussion with more turns? (y/n): ").lower().strip()
-        if continue_discussion == 'y':
-            additional_turns = int(input("How many more turns? "))
-            moderator_after = int(input("After how many turns should you join as moderator? (0 for no moderation): "))
-            return run_simulation(previous_message, agent_names, additional_turns, moderator_after, personas)
-        else:
-            print("\n👋 Thanks for using APOD!")
-            return False
+                # After each turn, ask if user wants to continue
+                if i < turns - 1:  # Don't ask on the last turn
+                    continue_chat = input("\nContinue the discussion? (y/n): ").lower().strip()
+                    if continue_chat != 'y':
+                        print("\n💫 Ending discussion early...")
+                        continue_discussion = False
+                        break
+
+            log_summary(log, topic, agent_names)
+            
+            if continue_discussion:
+                # Ask if user wants to continue discussion
+                continue_discussion = input("\nContinue this discussion with more turns? (y/n): ").lower().strip() == 'y'
+                if continue_discussion:
+                    turns = int(input("How many more turns? "))
+                    moderator_after = int(input("After how many turns should you join as moderator? (0 for no moderation): "))
+
+        print("\n👋 Thanks for using APOD!")
+        return False
             
     except Exception as e:
         print(f"Error during simulation: {e}")

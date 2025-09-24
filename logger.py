@@ -21,29 +21,40 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 from datetime import datetime
 
-def start_log(topic, agents, moderator_after):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    filename = f"apod_log_{timestamp.replace(' ', '_').replace(':', '-')}.md"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(f"# APOD Session Log\n\n")
-        f.write(f"**Topic**: {topic}\n")
-        f.write(f"**Agents**: {', '.join(agents)}\n")
-        f.write(f"**Moderator**: {'User joins after turn ' + str(moderator_after) if moderator_after else 'None'}\n")
-        f.write(f"**Timestamp**: {timestamp}\n\n---\n")
-    return filename
+def start_log(topic, participants, moderator_after, log_file=None):
+    log = {
+        "topic": topic,
+        "participants": participants,
+        "moderator_after": moderator_after,
+        "turns": [],
+        "file": log_file
+    }
+    return log
 
-def log_turn(filename, speaker, message, tags):
-    with open(filename, "a", encoding="utf-8") as f:
+def log_turn(log, speaker, message, tags):
+    if not log.get("file"):
+        return
+        
+    with open(log["file"], "a", encoding="utf-8") as f:
         f.write(f"### 🧠 {speaker}\n")
         f.write(f"> {message}\n\n")
         if tags:
             f.write(f"**Tags**: {tags}\n")
         f.write("\n---\n")
+    
+    # Store in memory too
+    log["turns"].append({
+        "speaker": speaker,
+        "message": message,
+        "tags": tags
+    })
 
-def log_summary(filename, topic, agents):
-    with open(filename, "a", encoding="utf-8") as f:
+def log_summary(log, topic, agents):
+    if not log.get("file"):
+        return
+        
+    with open(log["file"], "a", encoding="utf-8") as f:
         f.write("## 🧩 Summary\n")
         f.write(f"- Topic explored: {topic}\n")
         f.write(f"- Agents involved: {', '.join(agents)}\n")
         f.write("- This log may be used to refine agent prompts and improve future simulations.\n")
-        
