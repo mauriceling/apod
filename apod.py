@@ -26,7 +26,8 @@ from datetime import datetime
 
 draft = False
 
-release_number = "0.1"
+release_number = "0.1.0"
+release_codename = "Cashew Nut Butter"
 release_day = "24th September"
 release_year = "2025"
 release_date = " ".join([release_day, release_year])
@@ -35,9 +36,9 @@ if draft: release_number = "(Under Development After) " + release_number
 
 header = """
 🧠 Welcome to APOD: Agent Panel On Demand
-Release %s dated %s
+Release %s (%s) dated %s
 https://github.com/mauriceling/apod
-""" % (str(release_number),  release_date)
+""" % (str(release_number), release_codename, release_date)
 
 
 def main():
